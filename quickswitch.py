@@ -46,14 +46,13 @@ def check_dmenu():
 
 def dmenu(options, dmenu):
     '''Call dmenu with a list of options.'''
-
     cmd = subprocess.Popen(dmenu,
                            shell=True,
                            stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE)
-    stdout, _ = cmd.communicate('\n'.join(options).encode('utf-8'))
-    return stdout.decode('utf-8').strip('\n')
+    stdout, _ = cmd.communicate(u'\n'.join(options).encode('utf-8'))
+    return stdout.decode('utf-8').strip(u'\n')
 
 
 def get_windows():
@@ -159,7 +158,7 @@ def rename_nonunique(windows):
         if count > 1:
             for i in range(count):
                 index = window_names.index(name)
-                window_names[index] = "{} [{}]".format(name, i + 1)
+                window_names[index] = u"{} [{}]".format(name, i + 1)
     for i in range(len(windows)):
         windows[i]['name'] = window_names[i]
 
@@ -171,13 +170,13 @@ def get_scratchpad_window(window):
 
 def move_window_here(window):
     '''Does `move workspace current` on the specified window.'''
-    return i3.msg(0, "{} move workspace current".format(
+    return i3.msg(0, u"{} move workspace current".format(
         i3.container(id=window)))
 
 
 def rename_workspace(old, new):
     '''Rename a given workspace.'''
-    return i3.msg(0, "rename workspace {} to {}".format(old, new))
+    return i3.msg(0, u"rename workspace {} to {}".format(old, new))
 
 
 def focus(window):
@@ -260,7 +259,7 @@ def main():
         if not args.move:
             exit(*goto_workspace(target_ws))
         else:
-            exit(*i3.command("move container to workspace {}".format(target_ws)))
+            exit(*i3.command(u"move container to workspace {}".format(target_ws)))
 
 
     lookup_func = get_windows
