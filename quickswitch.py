@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # quickswitch for i3 - quickly change to and locate windows in i3.
 #
@@ -37,28 +37,36 @@ except ImportError:
 
 def check_dmenu():
     '''Check if dmenu is available.'''
-    devnull = open(os.devnull)
-    retcode = subprocess.call(["which", "dmenu"],
-                              stdout=devnull,
-                              stderr=devnull)
-    return True if retcode == 0 else False
+    with open(os.devnull, 'w') as f:
+        retcode = subprocess.call(["which", "dmenu"],
+                                  stdout=f,
+                                  stderr=f)
+        return retcode == 0
 
 
 def dmenu(options, dmenu):
     '''Call dmenu with a list of options.'''
+
+    options_keys = list(options.keys())
+    options_keys.sort()
 
     cmd = subprocess.Popen(dmenu,
                            shell=True,
                            stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE)
-    stdout, _ = cmd.communicate('\n'.join(options).encode('utf-8'))
+    stdout, _ = cmd.communicate('\n'.join(options_keys).encode('utf-8'))
     return stdout.decode('utf-8').strip('\n')
 
 
 def get_windows():
     '''Get all windows.'''
-    windows = i3.filter(nodes=[])
+    windows = []
+    for workspace in i3.get_workspaces():
+        workspace_tree = i3.filter(num=workspace.get('num'))
+        for window in i3.filter(workspace_tree, nodes=[]):
+            window['name'] = "[" + workspace['name'] + "] " + window['name']
+            windows.append(window)
     return create_lookup_table(windows)
 
 
@@ -159,7 +167,7 @@ def rename_nonunique(windows):
         if count > 1:
             for i in range(count):
                 index = window_names.index(name)
-                window_names[index] = "{} [{}]".format(name, i + 1)
+                window_names[index] = "{} ({})".format(name, i + 1)
     for i in range(len(windows)):
         windows[i]['name'] = window_names[i]
 
@@ -279,7 +287,7 @@ def main():
             action_func = goto_workspace
 
     lookup = lookup_func()
-    target = dmenu(lookup.keys(), args.dmenu)
+    target = dmenu(lookup, args.dmenu)
     id_ = lookup.get(target)
     success = action_func(lookup.get(target)) if id_ is not None else False
 
