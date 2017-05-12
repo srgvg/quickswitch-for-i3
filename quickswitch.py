@@ -98,12 +98,21 @@ def get_workspaces():
 
 def next_empty():
     '''Return the lowest numbered workspace that is empty.'''
-    workspaces = sorted([int(ws) for ws in get_workspaces().keys()
-                         if ws.isdecimal()])
-    for i in range(len(workspaces)):
-        if workspaces[i] != i + 1:
+    workspaces = get_workspaces().keys()
+    numbers = []
+    for ws in workspaces:
+        # find the leading number in ws string (if present)
+        number = ""
+        for c in ws:
+            if not c.isdigit(): break
+            number += str(c)
+        if number: numbers.append(int(number))
+    # remove duplicates, sort
+    numbers = sorted(set(numbers))
+    for i in range(len(numbers)):
+        if numbers[i] != i + 1:
             return str(i + 1)
-    return str(len(workspaces) + 1)
+    return str(numbers[-1] + 1)
 
 
 def next_used(number):
