@@ -208,11 +208,22 @@ def get_workspaces():
 
 def first_empty():
     """Return the lowest numbered workspace that is empty."""
-    workspaces = sorted(get_workspace_numbers(get_workspaces().keys()))
-    for i in range(len(workspaces)):
-        if workspaces[i] != i + 1:
+    workspaces = sorted([int(ws) for ws in get_workspaces().keys()
+                         if ws.isdecimal()])
+    numbers = []
+    for ws in workspaces:
+        # find the leading number in ws string (if present)
+        number = ""
+        for c in ws:
+            if not c.isdigit(): break
+            number += str(c)
+        if number: numbers.append(int(number))
+    # remove duplicates, sort
+    numbers = sorted(set(numbers))
+    for i in range(len(numbers)):
+        if numbers[i] != i + 1:
             return str(i + 1)
-    return str(len(workspaces) + 1)
+    return str(numbers[-1] + 1)
 
 
 def next_empty():
@@ -496,8 +507,10 @@ def main():
         target_ws = first_empty() if args.empty else next_empty()
         if args.journey:
             sys.exit(*move_container_to_workspace(target_ws))
+        elif not args.move:
+            exit(*goto_workspace(target_ws))
         else:
-            sys.exit(*goto_workspace(target_ws))
+            exit(*i3.command("move container to workspace {}".format(target_ws)))
 
     # likewise for degapping...
     if args.degap:
