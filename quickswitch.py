@@ -26,7 +26,6 @@ import re
 import sys
 import argparse
 import subprocess
-import shutil
 from collections import OrderedDict
 
 try:
@@ -48,18 +47,25 @@ follow_if_empty = False
 
 def check_dmenu():
     """Check if dmenu is available."""
-    return bool(shutil.which("dmenu"))
+    with open(os.devnull, 'w') as f:
+        retcode = subprocess.call(["which", "dmenu"],
+                                  stdout=f,
+                                  stderr=f)
+        return retcode == 0
 
 
 def dmenu(options, dmenu):
     """Call dmenu with a list of options."""
+
+    options_keys = list(options)
+    options_keys.sort()
 
     cmd = subprocess.Popen(dmenu,
                            shell=True,
                            stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE)
-    stdout, _ = cmd.communicate(u'\n'.join(options).encode('utf-8'))
+    stdout, _ = cmd.communicate(u'\n'.join(options_keys).encode('utf-8'))
     return stdout.decode('utf-8').strip(u'\n')
 
 
@@ -116,7 +122,6 @@ def parse_for_windows(tree_dict, window_list):
         if (tree_dict["layout"] != "dockarea" and
            not tree_dict["window"] is None):
             window_list.append(tree_dict)
-
     return window_list
 
 
